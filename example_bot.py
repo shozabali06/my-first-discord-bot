@@ -1,3 +1,4 @@
+from keep_alive import keep_alive
 from discord.ext import commands
 import discord
 import random
@@ -61,4 +62,6 @@ async def pic(ctx):
 token = os.getenv('DISCORD_TOKEN')
 if token is None:
     raise ValueError("DISCORD_TOKEN environment variable is not set")
+
+keep_alive()
 bot.run(token)
