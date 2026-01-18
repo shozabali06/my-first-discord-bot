@@ -13,8 +13,13 @@ class Crypto(commands.Cog):
         
         url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
 
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers=headers) as response:
+                print(f"Status Code: {response.status}")
                 if response.status == 200:
                     data = await response.json()
                     
@@ -23,18 +28,20 @@ class Crypto(commands.Cog):
                         await ctx.reply("I couldn't find that coin! 📉")
                         return
 
-                    # --- YOUR CODE HERE ---
-                    # The data looks like: {'bitcoin': {'usd': 96500}}
-                    # 1. Dig into 'data' to get the USD price.
-                    # 2. Send a message: "The price of bitcoin is $96500"
+                    embed = discord.Embed(
+                        title="Bitcoin Price", 
+                        description="Current market value", 
+                        color=discord.Color.gold()
+                    )
+                    embed.add_field(name="Price (USD)", value="$96,500")
+                    await ctx.send(embed=embed)  
 
-                    coin_price = data[coin_name]['usd']
-
-                    await ctx.reply(f'The prrice of {coin_name} is ${coin_price}')
-                    
-                    
+                elif response.status == 429:
+                    await ctx.reply("Whoa, slow down! We hit the rate limit. ⏳")
+                elif response.status == 403:
+                    await ctx.reply("CoinGecko blocked us! 🛡️")
                 else:
-                    await ctx.reply("The API is currently down! 🔌")
+                    await ctx.reply(f"The API is down! (Error: {response.status})")
 
 async def setup(bot):
     await bot.add_cog(Crypto(bot))
